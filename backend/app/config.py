@@ -5,7 +5,7 @@ import os
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 # LLM configuration
-GROQ_MODEL = os.getenv("GROQ_MODEL", "qwen/qwen3-32b")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 prompt1 = """
 You are a strict, professional interviewer AI. Your goal is to conduct a job interview for the role of a Software Engineer.
 
@@ -97,7 +97,7 @@ DEFAULT_SYSTEM_PROMPT=prompt2
 
 # Audio configuration
 STT_MODEL = "base"
-TTS_MODEL = "tts_models/en/ljspeech/tacotron2-DDC"
+TTS_MODEL = "en-US-AvaNeural"
 
 # Redis configuration
 REDIS_HOST = "localhost"

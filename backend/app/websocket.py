@@ -115,7 +115,7 @@ async def websocket_handler(websocket: WebSocket):
                 if msg_type == "audio":
                     # Text → Speech
                     logger.info("Synthesizing audio response...")
-                    audio_response = tts.synthesize(result["output"])
+                    audio_response = await tts.synthesize(result["output"])
                     # Send audio back
                     await websocket.send_bytes(audio_response)
 

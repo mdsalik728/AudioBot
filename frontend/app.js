@@ -6,15 +6,14 @@ const sendTextBtn = document.getElementById("sendText");
 const voiceBtn = document.getElementById("voiceControl");
 const voiceStatus = voiceBtn.querySelector(".voice-status");
 const conversationIdDisplay = document.getElementById("conversationIdDisplay");
-const tabBtns = document.querySelectorAll(".tab-btn");
-const tabPanes = document.querySelectorAll(".tab-pane");
+const newChatBtn = document.getElementById("newChatBtn");
 const clearHistoryBtn = document.getElementById("clearHistory");
 const scrollToBottomBtn = document.getElementById("scrollToBottom");
 
 // State
 const INITIAL_GREETING = "Hello! I'm your interviewer for this meeting. Let's begin!";
-const conversationId = "user-session-" + Math.floor(Math.random() * 1000);
-conversationIdDisplay.textContent = conversationId;
+let currentConversationId = "";
+let currentConversationMessages = [];
 
 let recorder;
 let chunks = [];
@@ -56,7 +55,7 @@ function scrollToBottom(force = false) {
     }
 }
 
-function addMessage(sender, text) {
+function addMessage(sender, text, skipSave = false) {
     const isUser = sender === "You";
     const msgDiv = document.createElement("div");
     msgDiv.className = `message ${isUser ? 'user' : 'ai'}`;
@@ -70,8 +69,9 @@ function addMessage(sender, text) {
     // Auto-scroll logic: Force scroll if AI is responding
     setTimeout(() => scrollToBottom(!isUser), 50);
 
-    // Save to history
-    saveToHistory(sender, text);
+    if (!skipSave) {
+        saveMessageToStorage(sender, text);
+    }
 }
 
 // Scroll Button Visibility
@@ -86,52 +86,83 @@ chatMessages.onscroll = () => {
 
 scrollToBottomBtn.onclick = () => scrollToBottom(true);
 
-function saveToHistory(sender, text) {
-    const history = JSON.parse(localStorage.getItem("audiobot_history") || "[]");
-    const item = {
-        id: Date.now(),
-        sender,
-        text,
-        date: new Date().toLocaleString()
-    };
-    history.unshift(item); // Newest first
-    localStorage.setItem("audiobot_history", JSON.stringify(history.slice(0, 50))); // Keep last 50
-    renderHistory();
+// --- Multi-Conversation Logic ---
+
+function createNewChat() {
+    currentConversationId = "session-" + Math.floor(Math.random() * 10000);
+    conversationIdDisplay.textContent = currentConversationId;
+    currentConversationMessages = [];
+
+    // Clear display
+    chatMessages.innerHTML = "";
+
+    // Initial greeting
+    addMessage("AI", INITIAL_GREETING);
+
+    renderSidebar();
 }
 
-function renderHistory() {
-    const history = JSON.parse(localStorage.getItem("audiobot_history") || "[]");
-    if (history.length === 0) {
+function saveMessageToStorage(sender, text) {
+    const history = JSON.parse(localStorage.getItem("audiobot_sessions") || "{}");
+
+    if (!history[currentConversationId]) {
+        history[currentConversationId] = {
+            id: currentConversationId,
+            timestamp: Date.now(),
+            messages: []
+        };
+    }
+
+    history[currentConversationId].messages.push({ sender, text, time: new Date().toLocaleTimeString() });
+    localStorage.setItem("audiobot_sessions", JSON.stringify(history));
+    renderSidebar();
+}
+
+function renderSidebar() {
+    const history = JSON.parse(localStorage.getItem("audiobot_sessions") || "{}");
+    const sessionIds = Object.keys(history).sort((a, b) => history[b].timestamp - history[a].timestamp);
+
+    if (sessionIds.length === 0) {
         historyList.innerHTML = '<div class="empty-state">No history yet.</div>';
         return;
     }
 
-    historyList.innerHTML = history.map(item => `
-        <div class="history-item">
-            <span class="history-date">${item.date} (${item.sender})</span>
-            <p class="history-text">${item.text}</p>
-        </div>
-    `).join("");
+    historyList.innerHTML = sessionIds.map(id => {
+        const session = history[id];
+        const lastMsg = session.messages.length > 0 ? session.messages[session.messages.length - 1].text : "New Chat";
+        const activeClass = id === currentConversationId ? 'active' : '';
+
+        return `
+            <div class="history-item ${activeClass}" onclick="loadConversation('${id}')">
+                <div class="history-item-id">${id}</div>
+                <div class="history-item-preview">${lastMsg}</div>
+            </div>
+        `;
+    }).join("");
 }
 
-// Tab Logic
-tabBtns.forEach(btn => {
-    btn.onclick = () => {
-        const target = btn.dataset.tab;
+window.loadConversation = (id) => {
+    const history = JSON.parse(localStorage.getItem("audiobot_sessions") || "{}");
+    const session = history[id];
 
-        tabBtns.forEach(b => b.classList.remove("active"));
-        tabPanes.forEach(p => p.classList.remove("active"));
+    if (!session) return;
 
-        btn.classList.add("active");
-        document.getElementById(`${target}-view`).classList.add("active");
+    currentConversationId = id;
+    conversationIdDisplay.textContent = id;
+    chatMessages.innerHTML = "";
 
-        if (target === "history") renderHistory();
-    };
-});
+    session.messages.forEach(msg => {
+        addMessage(msg.sender, msg.text, true);
+    });
+
+    renderSidebar();
+};
+
+newChatBtn.onclick = createNewChat;
 
 clearHistoryBtn.onclick = () => {
-    localStorage.setItem("audiobot_history", "[]");
-    renderHistory();
+    localStorage.removeItem("audiobot_sessions");
+    createNewChat();
 };
 
 // Controls
@@ -143,7 +174,7 @@ function sendMessage() {
 
     ws.send(JSON.stringify({
         type: "text",
-        conversation_id: conversationId,
+        conversation_id: currentConversationId,
         message: text
     }));
 
@@ -194,7 +225,7 @@ async function sendAudio() {
 
     ws.send(JSON.stringify({
         type: "audio",
-        conversation_id: conversationId
+        conversation_id: currentConversationId
     }));
 
     ws.send(buffer);
@@ -202,6 +233,14 @@ async function sendAudio() {
 
 voiceBtn.onclick = toggleRecording;
 
-// Initial Render
-renderHistory();
-addMessage("AI", INITIAL_GREETING);
+// Initial Setup
+const existingHistory = JSON.parse(localStorage.getItem("audiobot_sessions") || "{}");
+const sessionIds = Object.keys(existingHistory);
+
+if (sessionIds.length > 0) {
+    // Load most recent
+    const latestId = sessionIds.sort((a, b) => existingHistory[b].timestamp - existingHistory[a].timestamp)[0];
+    loadConversation(latestId);
+} else {
+    createNewChat();
+}

@@ -20,5 +20,9 @@ class AgentState(TypedDict):
     # classified intent (e.g., chat, tool, clarify)
     intent: Optional[str]
 
+    # structured response parts
+    acknowledgement: Optional[str]
+    analysis: Optional[dict]
+
     # final response returned to client
     output: str

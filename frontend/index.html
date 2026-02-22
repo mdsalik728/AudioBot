@@ -10,26 +10,41 @@
 </head>
 
 <body>
-    <div class="glass-container">
-        <header>
-            <div class="logo">
-                <span class="logo-icon">🤖</span>
-                <h1>AudioBot</h1>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🤖</span>
+                    <h1>AudioBot</h1>
+                </div>
+                <button id="newChatBtn" class="new-chat-btn">
+                    <span class="plus-icon">+</span> New Chat
+                </button>
             </div>
-            <div class="session-badge">
-                ID: <span id="conversationIdDisplay">...</span>
+
+            <div class="sidebar-content">
+                <div class="history-section">
+                    <h3>Recent Conversations</h3>
+                    <div id="history-list" class="sidebar-history-list">
+                        <!-- History items injected here -->
+                    </div>
+                </div>
             </div>
-        </header>
 
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="chat">Chat</button>
-            <button class="tab-btn" data-tab="history">History</button>
-        </div>
+            <div class="sidebar-footer">
+                <div class="session-badge">
+                    ID: <span id="conversationIdDisplay">...</span>
+                </div>
+                <button id="clearHistory" class="text-link">Clear All</button>
+            </div>
+        </aside>
 
-        <main>
-            <!-- Chat View -->
-            <section id="chat-view" class="tab-pane active">
-                <div id="chat-messages" class="scroll-area">
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <section id="chat-view" class="chat-container">
+                <div id="chat-messages" class="chat-messages scroll-area">
+                    <!-- Messages will be injected here -->
                 </div>
 
                 <button id="scrollToBottom" class="scroll-down-btn" title="Scroll to Bottom">
@@ -50,17 +65,6 @@
                             <span class="voice-status">Press to Record</span>
                         </button>
                     </div>
-                </div>
-            </section>
-
-            <!-- History View -->
-            <section id="history-view" class="tab-pane">
-                <div class="history-header">
-                    <h3>Recent Conversations</h3>
-                    <button id="clearHistory" class="text-link">Clear All</button>
-                </div>
-                <div id="history-list" class="scroll-area">
-                    <!-- History items injected here -->
                 </div>
             </section>
         </main>

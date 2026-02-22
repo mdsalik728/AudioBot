@@ -1,8 +1,8 @@
 # backend/app/audio/tts.py
 
 import logging
-import tempfile
-from TTS.api import TTS
+import edge_tts
+import io
 from app.config import TTS_MODEL
 
 logger = logging.getLogger(__name__)
@@ -10,21 +10,16 @@ logger = logging.getLogger(__name__)
 
 class TextToSpeech:
     """
-    Converts text into spoken audio (wav bytes).
+    Converts text into spoken audio (mp3/wav) using edge-tts.
     """
 
-    def __init__(self, model_name: str = TTS_MODEL):
-        logger.info(f"Initializing TTS model: {model_name}")
-        try:
-            self.tts = TTS(model_name=model_name)
-            logger.info("TTS model initialized.")
-        except Exception as e:
-            logger.error(f"Failed to initialize TTS model: {e}")
-            raise e
+    def __init__(self, voice: str = TTS_MODEL):
+        self.voice = voice
+        logger.info(f"Initialized TTS with voice: {self.voice}")
 
     def _clean_text(self, text: str) -> str:
         """
-        Removes markdown characters and emojis that cause TTS to crash.
+        Removes markdown characters and emojis that might disrupt speech.
         """
         import re
         # Remove bold/italic markdown (asterisks)
@@ -35,8 +30,11 @@ class TextToSpeech:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    def synthesize(self, text: str) -> bytes:
-        logger.info(f"Synthesizing audio for: {text[:50]}...")
+    async def synthesize(self, text: str) -> bytes:
+        """
+        Synthesizes text to speech bytes using edge-tts.
+        """
+        logger.info(f"Synthesizing audio (edge-tts) for: {text[:50]}...")
         cleaned_text = self._clean_text(text)
         
         if not cleaned_text:
@@ -44,16 +42,16 @@ class TextToSpeech:
             return b""
 
         try:
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as fp:
-                temp_path = fp.name
+            communicate = edge_tts.Communicate(cleaned_text, self.voice)
+            audio_stream = io.BytesIO()
             
-            self.tts.tts_to_file(text=cleaned_text, file_path=temp_path)
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    audio_stream.write(chunk["data"])
             
-            with open(temp_path, "rb") as f:
-                audio_data = f.read()
-            
+            audio_data = audio_stream.getvalue()
             logger.info(f"Synthesis complete. Size: {len(audio_data)} bytes")
             return audio_data
         except Exception as e:
             logger.error(f"Synthesis error: {e}")
-            raise e
+            return b""

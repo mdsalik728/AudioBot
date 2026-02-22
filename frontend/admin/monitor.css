@@ -1,0 +1,10 @@
+body {
+    font-family: Arial;
+    background: #f4f4f4;
+    padding: 20px;
+}
+
+#status div {
+    margin: 10px 0;
+    font-size: 18px;
+}

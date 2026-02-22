@@ -25,130 +25,161 @@ body {
         radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
     color: var(--text-main);
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin: 0;
     overflow: hidden;
 }
 
-.glass-container {
-    width: 90%;
-    max-width: 600px;
-    height: 85vh;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 300px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow);
     padding: 24px;
-}
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.logo-icon {
-    font-size: 24px;
-}
-
-h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-}
-
-.session-badge {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    border: 1px solid var(--glass-border);
-}
-
-#conversationIdDisplay {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-/* Tabs */
-.tabs {
-    display: flex;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 6px;
-    border-radius: 16px;
-    margin-bottom: 24px;
-}
-
-.tab-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-dim);
-    padding: 10px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 500;
     transition: all 0.3s ease;
 }
 
-.tab-btn.active {
+.sidebar-header {
+    margin-bottom: 32px;
+}
+
+.new-chat-btn {
+    width: 100%;
     background: var(--primary);
     color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-/* Main Content Layout */
-main {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+.new-chat-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
 }
 
-/* Scroll Area & Pane */
-.tab-pane {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    position: relative;
-    /* For absolute positioning of scroll button */
+.plus-icon {
+    font-size: 20px;
 }
 
-.tab-pane.active {
-    display: flex;
-}
-
-.scroll-area {
+.sidebar-content {
     flex: 1;
     overflow-y: auto;
-    padding-right: 8px;
     margin-bottom: 24px;
+}
+
+.history-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+}
+
+.sidebar-history-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    scroll-behavior: smooth;
+    gap: 8px;
+}
+
+.history-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.history-item.active {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+}
+
+.history-item-id {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.history-item-preview {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Main Chat Area */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    position: relative;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 40px 20px 20px 20px;
+}
+
+.chat-messages {
+    flex: 1;
+    padding-bottom: 20px;
+}
+
+/* Positioning Input Area at the bottom */
+.input-area {
+    margin-top: auto;
+    padding: 20px 0;
+    background: linear-gradient(to top, var(--bg-dark) 80%, transparent);
+}
+
+/* Adjustments for the new layout */
+.logo h1 {
+    font-size: 1.25rem;
 }
 
 .scroll-down-btn {
     position: absolute;
-    bottom: 120px;
-    right: 24px;
+    bottom: 180px;
+    right: 32px;
     background: var(--primary);
     color: white;
     border: none;
@@ -159,17 +190,18 @@ main {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     border: 1px solid var(--glass-border);
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s;
-    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
 }
 
 .scroll-down-btn.visible {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
 }
 
 .scroll-down-btn:hover {
@@ -177,7 +209,34 @@ main {
     transform: translateY(-2px);
 }
 
-/* Custom Scrollbar */
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        position: absolute;
+        left: -300px;
+        z-index: 100;
+        height: 100%;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .chat-main {
+        max-width: 100%;
+    }
+}
+
+/* Rest of the styles (Message Bubbles, Input, etc.) remain relevant */
+/* I'll keep the bubble and input wrapper styles from the original */
+.scroll-area {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+}
+
 .scroll-area::-webkit-scrollbar {
     width: 6px;
 }
@@ -191,7 +250,6 @@ main {
     border-radius: 10px;
 }
 
-/* Message Bubbles */
 .message {
     display: flex;
     flex-direction: column;
@@ -226,13 +284,6 @@ main {
     border: 1px solid var(--glass-border);
 }
 
-/* Input Area */
-.input-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
 .input-wrapper {
     display: flex;
     background: rgba(255, 255, 255, 0.05);
@@ -262,17 +313,12 @@ input {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
-.icon-btn:hover {
-    background: var(--primary-hover);
-}
-
-/* Voice Layout */
 .voice-controls {
     display: flex;
     justify-content: center;
+    margin-top: 12px;
 }
 
 .voice-btn {
@@ -284,12 +330,8 @@ input {
     padding: 12px 24px;
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.3s;
     width: 100%;
-}
-
-.voice-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
 }
 
 .voice-btn.recording {
@@ -298,18 +340,10 @@ input {
     animation: pulse 1.5s infinite;
 }
 
-.mic-icon {
-    font-size: 20px;
-}
-
 .voice-status {
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-dim);
-}
-
-.recording .voice-status {
-    color: #ef4444;
 }
 
 @keyframes pulse {
@@ -326,49 +360,20 @@ input {
     }
 }
 
-/* History Styles */
-.history-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
 .text-link {
     background: transparent;
     border: none;
     color: var(--primary);
     font-size: 0.85rem;
     cursor: pointer;
+    text-align: left;
 }
 
-.history-item {
-    background: rgba(255, 255, 255, 0.03);
+.session-badge {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
     border: 1px solid var(--glass-border);
-    padding: 16px;
-    border-radius: 16px;
-    margin-bottom: 12px;
-}
-
-.history-date {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-    display: block;
-}
-
-.history-text {
-    font-size: 0.9rem;
-    color: var(--text-main);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.empty-state {
-    text-align: center;
-    color: var(--text-dim);
-    margin-top: 40px;
 }
