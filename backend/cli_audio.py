@@ -120,7 +120,8 @@ def main():
                 output="",
                 intent=None
             )
-            result = agent.invoke(state)
+            run_config = {"configurable": {"thread_id": conversation_id}}
+            result = agent.invoke(state, config=run_config)
             conversation = result["conversation"]
             memory.save_conversation(conversation_id, conversation)
             print(f"Bot: {result['output']}")

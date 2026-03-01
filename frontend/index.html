@@ -24,6 +24,31 @@
             </div>
 
             <div class="sidebar-content">
+                <div class="context-section">
+                    <h3>Interview Context</h3>
+                    <div class="upload-group">
+                        <label for="resumeUpload">Resume PDF</label>
+                        <input id="resumeUpload" type="file" accept=".pdf,application/pdf" />
+                        <button id="uploadResumeBtn" class="new-chat-btn upload-btn">Upload Resume</button>
+                    </div>
+                    <div class="upload-group">
+                        <label for="jdUpload">JD PDF (Optional Override)</label>
+                        <input id="jdUpload" type="file" accept=".pdf,application/pdf" />
+                        <div class="upload-actions">
+                            <button id="uploadJdBtn" class="new-chat-btn upload-btn">Upload JD</button>
+                            <button id="resetJdBtn" class="text-link">Reset JD</button>
+                        </div>
+                    </div>
+                    <div class="context-status-row">
+                        <span>JD Status:</span>
+                        <span id="jdStatus" class="status-badge warning">Checking...</span>
+                    </div>
+                    <div class="context-status-row">
+                        <span>Resume:</span>
+                        <span id="resumeStatus" class="status-badge warning">Not uploaded</span>
+                    </div>
+                </div>
+
                 <div class="history-section">
                     <h3>Recent Conversations</h3>
                     <div id="history-list" class="sidebar-history-list">

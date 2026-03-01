@@ -85,6 +85,81 @@ body {
     margin-bottom: 24px;
 }
 
+.context-section {
+    padding: 14px;
+    margin-bottom: 20px;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.upload-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.upload-group label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.upload-group input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px dashed var(--glass-border);
+    border-radius: 10px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.upload-btn {
+    margin-top: 0;
+    padding: 10px;
+    font-size: 0.85rem;
+}
+
+.upload-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.context-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    border: 1px solid var(--glass-border);
+}
+
+.status-badge.ok {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.14);
+}
+
+.status-badge.warning {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.14);
+}
+
+.status-badge.error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.14);
+}
+
 .history-section h3 {
     font-size: 0.8rem;
     text-transform: uppercase;
@@ -224,6 +299,15 @@ body {
 
     .chat-main {
         max-width: 100%;
+    }
+
+    .context-section {
+        margin-bottom: 14px;
+    }
+
+    .upload-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 

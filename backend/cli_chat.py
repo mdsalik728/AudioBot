@@ -45,8 +45,9 @@ def main():
                 intent=None
             )
 
-            # Invoke agent
-            result = agent.invoke(state)
+            # Invoke agent with thread_id required by Redis checkpointer
+            run_config = {"configurable": {"thread_id": conversation_id}}
+            result = agent.invoke(state, config=run_config)
 
             # Update local conversation history with the result
             conversation = result["conversation"]

@@ -9,11 +9,19 @@ const conversationIdDisplay = document.getElementById("conversationIdDisplay");
 const newChatBtn = document.getElementById("newChatBtn");
 const clearHistoryBtn = document.getElementById("clearHistory");
 const scrollToBottomBtn = document.getElementById("scrollToBottom");
+const resumeUploadInput = document.getElementById("resumeUpload");
+const jdUploadInput = document.getElementById("jdUpload");
+const uploadResumeBtn = document.getElementById("uploadResumeBtn");
+const uploadJdBtn = document.getElementById("uploadJdBtn");
+const resetJdBtn = document.getElementById("resetJdBtn");
+const jdStatusBadge = document.getElementById("jdStatus");
+const resumeStatusBadge = document.getElementById("resumeStatus");
 
 // State
 const INITIAL_GREETING = "Hello! I'm your interviewer for this meeting. Let's begin!";
 let currentConversationId = "";
 let currentConversationMessages = [];
+const API_BASE = "http://127.0.0.1:8000";
 
 let recorder;
 let chunks = [];
@@ -100,6 +108,7 @@ function createNewChat() {
     addMessage("AI", INITIAL_GREETING);
 
     renderSidebar();
+    refreshContextStatus(currentConversationId);
 }
 
 function saveMessageToStorage(sender, text) {
@@ -156,12 +165,14 @@ window.loadConversation = (id) => {
     });
 
     renderSidebar();
+    refreshContextStatus(currentConversationId);
 };
 
 newChatBtn.onclick = createNewChat;
 
 clearHistoryBtn.onclick = () => {
     localStorage.removeItem("audiobot_sessions");
+    localStorage.removeItem("audiobot_context_meta");
     createNewChat();
 };
 
@@ -232,6 +243,120 @@ async function sendAudio() {
 }
 
 voiceBtn.onclick = toggleRecording;
+
+function setStatusBadge(el, text, type) {
+    el.textContent = text;
+    el.classList.remove("ok", "warning", "error");
+    el.classList.add(type);
+}
+
+function saveContextMeta(conversationId, patch) {
+    const allMeta = JSON.parse(localStorage.getItem("audiobot_context_meta") || "{}");
+    allMeta[conversationId] = {
+        ...(allMeta[conversationId] || {}),
+        ...patch
+    };
+    localStorage.setItem("audiobot_context_meta", JSON.stringify(allMeta));
+}
+
+async function refreshContextStatus(conversationId) {
+    if (!conversationId) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/context/status?conversation_id=${encodeURIComponent(conversationId)}`);
+        if (!res.ok) throw new Error("Unable to fetch context status");
+        const data = await res.json();
+
+        if (!data.default_jd_loaded) {
+            setStatusBadge(jdStatusBadge, "JD unavailable", "error");
+        } else if (data.jd_override_present) {
+            setStatusBadge(jdStatusBadge, "Using custom JD", "ok");
+        } else {
+            setStatusBadge(jdStatusBadge, "Default JD loaded", "ok");
+        }
+
+        if (data.resume_present) {
+            setStatusBadge(resumeStatusBadge, "Uploaded", "ok");
+        } else {
+            setStatusBadge(resumeStatusBadge, "Not uploaded", "warning");
+        }
+
+        saveContextMeta(conversationId, {
+            resume_present: data.resume_present,
+            jd_override_present: data.jd_override_present
+        });
+    } catch (err) {
+        console.error(err);
+        setStatusBadge(jdStatusBadge, "Status error", "error");
+        setStatusBadge(resumeStatusBadge, "Status error", "error");
+    }
+}
+
+async function uploadPdf(endpoint, file, conversationId) {
+    if (!file) {
+        alert("Please select a PDF file first.");
+        return null;
+    }
+
+    const formData = new FormData();
+    formData.append("conversation_id", conversationId);
+    formData.append("file", file);
+
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        body: formData
+    });
+
+    const payload = await res.json();
+    if (!res.ok) {
+        throw new Error(payload.detail || "Upload failed");
+    }
+    return payload;
+}
+
+async function uploadResume(file, conversationId) {
+    const payload = await uploadPdf("/context/resume/upload", file, conversationId);
+    addMessage("AI", `Resume uploaded successfully (${payload.chars_extracted} characters extracted).`);
+}
+
+async function uploadJdOverride(file, conversationId) {
+    const payload = await uploadPdf("/context/jd/upload", file, conversationId);
+    addMessage("AI", `JD override uploaded successfully (${payload.chars_extracted} characters extracted).`);
+}
+
+uploadResumeBtn.onclick = async () => {
+    try {
+        await uploadResume(resumeUploadInput.files[0], currentConversationId);
+        resumeUploadInput.value = "";
+        await refreshContextStatus(currentConversationId);
+    } catch (err) {
+        alert(err.message);
+    }
+};
+
+uploadJdBtn.onclick = async () => {
+    try {
+        await uploadJdOverride(jdUploadInput.files[0], currentConversationId);
+        jdUploadInput.value = "";
+        await refreshContextStatus(currentConversationId);
+    } catch (err) {
+        alert(err.message);
+    }
+};
+
+resetJdBtn.onclick = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/context/jd/override?conversation_id=${encodeURIComponent(currentConversationId)}`, {
+            method: "DELETE"
+        });
+        const payload = await res.json();
+        if (!res.ok) throw new Error(payload.detail || "Failed to reset JD override");
+        addMessage("AI", "JD override reset. Default JD will be used.");
+        await refreshContextStatus(currentConversationId);
+    } catch (err) {
+        alert(err.message);
+    }
+};
 
 // Initial Setup
 const existingHistory = JSON.parse(localStorage.getItem("audiobot_sessions") || "{}");

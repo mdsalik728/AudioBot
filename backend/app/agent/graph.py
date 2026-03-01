@@ -1,6 +1,7 @@
 # backend/app/agent/graph.py
 
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.redis import RedisSaver
 from app.agent.state import AgentState
 from app.agent.nodes import (
     intent_classifier_node,
@@ -8,6 +9,10 @@ from app.agent.nodes import (
     tool_node,
     clarify_node,
 )
+from app.config import REDIS_URL
+
+redis_saver = RedisSaver(redis_url=REDIS_URL)
+redis_saver.setup()
 
 
 def route_by_intent(state: AgentState) -> str:
@@ -45,4 +50,4 @@ def build_agent():
     graph.add_edge("tool", END)
     graph.add_edge("clarify", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=redis_saver)

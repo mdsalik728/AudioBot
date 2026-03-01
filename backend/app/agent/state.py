@@ -17,6 +17,13 @@ class AgentState(TypedDict):
     # system message instruction
     system_message: Optional[str]
 
+    # conversation/session id
+    conversation_id: Optional[str]
+
+    # dynamic context
+    jd_text: Optional[str]
+    resume_text: Optional[str]
+
     # classified intent (e.g., chat, tool, clarify)
     intent: Optional[str]
 

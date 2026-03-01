@@ -1,11 +1,19 @@
 # backend/app/agent/nodes.py
 
+import logging
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from app.agent.state import AgentState
-from app.config import GROQ_MODEL, DEFAULT_SYSTEM_PROMPT
+from app.config import (
+    GROQ_MODEL,
+    DEFAULT_SYSTEM_PROMPT,
+    LANGSMITH_PROJECT,
+    APP_ENV,
+)
 from app.agent.tools import get_current_time
 from app.agent.schema import IntentResponse, InterviewResponse
+
+logger = logging.getLogger(__name__)
 
 llm = ChatGroq(
     model=GROQ_MODEL,
@@ -14,6 +22,18 @@ llm = ChatGroq(
     timeout=None,
     max_retries=2,
 )
+
+
+def _trace_config(state: AgentState, node_name: str) -> dict:
+    conversation_id = state.get("conversation_id") or "unknown"
+    return {
+        "run_name": f"{node_name}_node",
+        "tags": ["audiobot", f"node:{node_name}", f"env:{APP_ENV}"],
+        "metadata": {
+            "conversation_id": conversation_id,
+            "langsmith_project": LANGSMITH_PROJECT,
+        },
+    }
 
 
 def intent_classifier_node(state: AgentState) -> AgentState:
@@ -35,9 +55,9 @@ User Input: "{state['user_input']}"
         HumanMessage(content=prompt)
     ]
     
-    response = structured_llm.invoke(messages)
+    response = structured_llm.invoke(messages, config=_trace_config(state, "intent_classifier"))
     intent = response.intent
-    print(f"DEBUG: User Input='{state['user_input']}' | Classified Intent='{intent}'")
+    logger.debug("Intent classified as '%s' for conversation '%s'", intent, state.get("conversation_id"))
 
     state["intent"] = intent
     return state
@@ -91,7 +111,7 @@ def chat_node(state: AgentState) -> AgentState:
     )
     messages.append(HumanMessage(content=state['user_input'] + instruction))
 
-    response = structured_llm.invoke(messages)
+    response = structured_llm.invoke(messages, config=_trace_config(state, "chat"))
     
     # Format the final output for the user
     formatted_output = f"{response.acknowledgement}\n\n{response.next_question}"
@@ -101,6 +121,6 @@ def chat_node(state: AgentState) -> AgentState:
     state["output"] = formatted_output
     state["acknowledgement"] = response.acknowledgement
     state["analysis"] = response.analysis.model_dump()
-    print(state["analysis"])
+    logger.debug("Interview analysis generated for conversation '%s'", state.get("conversation_id"))
 
     return state

@@ -5,9 +5,10 @@ import logging
 from fastapi import WebSocket, WebSocketDisconnect
 from app.agent.graph import build_agent
 from app.memory.store import MemoryStore
+from app.context.store import ContextStore
 from app.audio.stt import SpeechToText
 from app.audio.tts import TextToSpeech
-from app.config import DEFAULT_SYSTEM_PROMPT
+from app.config import INTERVIEW_SYSTEM_TEMPLATE
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 try:
     agent = build_agent()
     memory = MemoryStore()
+    context_store = ContextStore()
     stt = SpeechToText()
     tts = TextToSpeech()
     logger.info("Backend components (Agent, Memory, STT, TTS) initialized successfully.")
@@ -79,10 +81,19 @@ async def websocket_handler(websocket: WebSocket):
             # Process with Agent
             try:
                 conversation = memory.get_conversation(conversation_id)
+                jd_text = context_store.get_jd(conversation_id) or "Job Description not available."
+                resume_text = context_store.get_resume(conversation_id) or "Resume not provided yet."
+                system_message = INTERVIEW_SYSTEM_TEMPLATE.format(
+                    jd_text=jd_text,
+                    resume_text=resume_text,
+                )
                 state = {
                     "user_input": user_text,
                     "conversation": conversation,
-                    "system_message": DEFAULT_SYSTEM_PROMPT,
+                    "system_message": system_message,
+                    "conversation_id": conversation_id,
+                    "jd_text": jd_text,
+                    "resume_text": resume_text,
                     "intent": None,
                     "output": "",
                 }
@@ -95,8 +106,9 @@ async def websocket_handler(websocket: WebSocket):
                         "type": "transcription"
                     }))
 
-                # Use non-streaming invoke
-                result = agent.invoke(state)
+                # Use non-streaming invoke with thread_id required by Redis checkpointer
+                run_config = {"configurable": {"thread_id": conversation_id}}
+                result = agent.invoke(state, config=run_config)
 
                 # Persist updated conversation
                 memory.save_conversation(
